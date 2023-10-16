@@ -1,12 +1,11 @@
-//> using dep "org.flinkextended::flink-scala-api:1.17.1_1.0.0"
+//> using dep "org.flinkextended::flink-scala-api:1.17.1_1.1.0"
 //> using dep "org.apache.flink:flink-clients:1.17.1"
 //> using dep "org.apache.flink:flink-csv:1.17.1"
 //> using dep "org.apache.flink:flink-connector-files:1.17.1"
 //> using dep "org.apache.flink:flink-connector-kafka:1.17.1"
 
-
-import org.apache.flink.api._
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api.*
+import org.apache.flinkx.api.serializers.*
 import org.apache.flink.connector.file.src.FileSource
 import org.apache.flink.connector.file.src.reader.TextLineInputFormat
 import org.apache.flink.connector.file.src.impl.StreamFormatAdapter
@@ -17,9 +16,9 @@ import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 import org.apache.flink.core.fs.Path
 
+import java.io.File
 
-val currentDirectory = _root_.java.io.File(".").getCanonicalPath
-
+val currentDirectory = File(".").getCanonicalPath
 
 val fileSource = FileSource
   .forBulkFileFormat(
@@ -28,10 +27,8 @@ val fileSource = FileSource
   )
   .build
 
-
 val switchTimestamp = -1L
 val brokers = "<put-your-kakfa-host-here>:9092"
-
 
 val kafkaSource = KafkaSource
   .builder[String]()
@@ -41,17 +38,14 @@ val kafkaSource = KafkaSource
   .setValueOnlyDeserializer(SimpleStringSchema())
   .build
 
-
 val hybridSource = HybridSource
   .builder(fileSource)
   .addSource(kafkaSource)
   .build
 
-
 val env = StreamExecutionEnvironment.getExecutionEnvironment
 env
   .fromSource(hybridSource, WatermarkStrategy.noWatermarks(), "combined")
   .print()
-
 
 env.execute()
